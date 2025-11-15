@@ -9,7 +9,7 @@ function createRoute() {
         return;
     }
 
-    fetch('http://localhost:3000/api/routes', {
+    fetch('https://bus-booking-system-0hap.onrender.com', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
