@@ -47,7 +47,7 @@ function displayExistingRoutes() {
 
     container.innerHTML = "<p>Loading routes...</p>";
 
-    fetch('http://localhost:3000/api/routes')
+    fetch('https://bus-booking-system-0hap.onrender.com')
         .then(function(response) {
             return response.json();
         })
@@ -94,7 +94,7 @@ function deleteRoute(routeId) {
         return;
     }
 
-    fetch('http://localhost:3000/api/routes/' + routeId, {
+    fetch('https://bus-booking-system-0hap.onrender.com' + routeId, {
         method: 'DELETE'
     })
     .then(function(response) {
