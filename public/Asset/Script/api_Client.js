@@ -1,4 +1,4 @@
-var API_BASE_URL = 'http://localhost:3000/api';
+var API_BASE_URL = 'https://bus-booking-system-0hap.onrender.com';
 
 function registerUser(username) {
     return fetch(API_BASE_URL + '/users/register', {
