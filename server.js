@@ -4,25 +4,24 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use environment port for Render
 
 app.use(cors());
 app.use(express.json());
-const publicPath = path.join(__dirname, 'public');
-console.log('Serving files from:', publicPath);
-app.use(express.static(publicPath));
 
-
+// Only use static serving if you deploy frontend with backend
+// const publicPath = path.join(__dirname, 'public');
+// app.use(express.static(publicPath));
 
 const DATA_DIR = path.join(__dirname, 'data');
 const ROUTES_FILE = path.join(DATA_DIR, 'routes.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
 
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR);
-}
+// Ensure data folder exists
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
+// Initialize JSON files if missing
 function initializeDataFiles() {
     if (!fs.existsSync(ROUTES_FILE)) {
         const defaultRoutes = [
@@ -32,19 +31,15 @@ function initializeDataFiles() {
         ];
         fs.writeFileSync(ROUTES_FILE, JSON.stringify(defaultRoutes, null, 2));
     }
-    if (!fs.existsSync(USERS_FILE)) {
-        fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
-    }
-    if (!fs.existsSync(BOOKINGS_FILE)) {
-        fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2));
-    }
+    if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+    if (!fs.existsSync(BOOKINGS_FILE)) fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2));
 }
 
+// Helper functions
 function readJSON(filePath) {
     try {
-        const data = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
+        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (err) {
         return [];
     }
 }
@@ -53,18 +48,17 @@ function writeJSON(filePath, data) {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+// Routes
 app.post('/api/users/register', (req, res) => {
     const { username } = req.body;
-    if (!username || username.trim() === '') {
-        return res.status(400).json({ error: 'Username is required' });
-    }
+    if (!username || username.trim() === '') return res.status(400).json({ error: 'Username is required' });
+
     const users = readJSON(USERS_FILE);
     const existingUser = users.find(u => u.username === username.trim());
-    if (existingUser) {
-        return res.json({ success: true, message: 'User already exists', user: existingUser });
-    }
+    if (existingUser) return res.json({ success: true, message: 'User already exists', user: existingUser });
+
     const newUser = {
-        id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+        id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
         username: username.trim(),
         createdAt: new Date().toISOString()
     };
@@ -90,12 +84,11 @@ app.get('/api/routes', (req, res) => {
 
 app.post('/api/routes', (req, res) => {
     const { title, description, time, maxSeats } = req.body;
-    if (!title || !time || !maxSeats) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
+    if (!title || !time || !maxSeats) return res.status(400).json({ error: 'All fields are required' });
+
     const routes = readJSON(ROUTES_FILE);
     const newRoute = {
-        id: routes.length > 0 ? Math.max(...routes.map(r => r.id)) + 1 : 1,
+        id: routes.length ? Math.max(...routes.map(r => r.id)) + 1 : 1,
         title: title.trim(),
         description: description ? description.trim() : '',
         time: time,
@@ -111,12 +104,12 @@ app.delete('/api/routes/:id', (req, res) => {
     const routes = readJSON(ROUTES_FILE);
     const routeId = parseInt(req.params.id);
     const routeIndex = routes.findIndex(r => r.id === routeId);
-    if (routeIndex === -1) {
-        return res.status(404).json({ error: 'Route not found' });
-    }
+    if (routeIndex === -1) return res.status(404).json({ error: 'Route not found' });
+
     let bookings = readJSON(BOOKINGS_FILE);
     bookings = bookings.filter(b => b.routeId !== routeId);
     writeJSON(BOOKINGS_FILE, bookings);
+
     routes.splice(routeIndex, 1);
     writeJSON(ROUTES_FILE, routes);
     res.json({ success: true, message: 'Route deleted successfully' });
@@ -124,25 +117,21 @@ app.delete('/api/routes/:id', (req, res) => {
 
 app.post('/api/bookings', (req, res) => {
     const { username, routeId } = req.body;
-    if (!username || !routeId) {
-        return res.status(400).json({ error: 'Username and route ID are required' });
-    }
+    if (!username || !routeId) return res.status(400).json({ error: 'Username and route ID are required' });
+
     const routes = readJSON(ROUTES_FILE);
     const route = routes.find(r => r.id === parseInt(routeId));
-    if (!route) {
-        return res.status(404).json({ error: 'Route not found' });
-    }
+    if (!route) return res.status(404).json({ error: 'Route not found' });
+
     const bookings = readJSON(BOOKINGS_FILE);
     const existingBooking = bookings.find(b => b.username === username.trim() && b.routeId === parseInt(routeId));
-    if (existingBooking) {
-        return res.status(400).json({ error: 'You have already booked this route' });
-    }
+    if (existingBooking) return res.status(400).json({ error: 'You have already booked this route' });
+
     const routeBookings = bookings.filter(b => b.routeId === parseInt(routeId));
-    if (routeBookings.length >= route.maxSeats) {
-        return res.status(400).json({ error: 'This route is fully booked' });
-    }
+    if (routeBookings.length >= route.maxSeats) return res.status(400).json({ error: 'This route is fully booked' });
+
     const newBooking = {
-        id: bookings.length > 0 ? Math.max(...bookings.map(b => b.id)) + 1 : 1,
+        id: bookings.length ? Math.max(...bookings.map(b => b.id)) + 1 : 1,
         username: username.trim(),
         routeId: parseInt(routeId),
         routeTitle: route.title,
@@ -180,7 +169,8 @@ app.get('/api/reports/statistics', (req, res) => {
     res.json({ statistics, mostPopularRoutes: mostPopular, totalRoutes: routes.length, totalBookings: bookings.length });
 });
 
+// Initialize files and start server
 initializeDataFiles();
 app.listen(PORT, () => {
-    console.log('Server running on http://localhost:' + PORT);
+    console.log(`Server running on port ${PORT}`);
 });
