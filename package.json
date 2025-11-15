@@ -2,7 +2,7 @@
   "name": "bus_booking_system",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://<your-username>.github.io/<repo-name>",
+  "homepage": "https://HafizhIllyas.github.io/bus_booking_system",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -16,5 +16,17 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
