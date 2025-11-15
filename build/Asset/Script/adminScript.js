@@ -1,3 +1,5 @@
+const API_BASE_URL = 'https://bus-booking-system-0hap.onrender.com';
+
 function createRoute() {
     const title = document.getElementById("routeTitle").value.trim();
     const description = document.getElementById("routeDescription").value.trim();
@@ -9,7 +11,7 @@ function createRoute() {
         return;
     }
 
-    fetch('https://bus-booking-system-0hap.onrender.com', {
+    fetch(API_BASE_URL + '/api/routes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -47,7 +49,7 @@ function displayExistingRoutes() {
 
     container.innerHTML = "<p>Loading routes...</p>";
 
-    fetch('https://bus-booking-system-0hap.onrender.com')
+    fetch(API_BASE_URL + '/api/routes')
         .then(function(response) {
             return response.json();
         })
@@ -94,7 +96,7 @@ function deleteRoute(routeId) {
         return;
     }
 
-    fetch('https://bus-booking-system-0hap.onrender.com' + routeId, {
+    fetch(API_BASE_URL + '/api/routes/' + routeId, {
         method: 'DELETE'
     })
     .then(function(response) {
