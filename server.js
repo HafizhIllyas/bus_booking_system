@@ -6,7 +6,15 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000; // Use environment port for Render
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// Add OPTIONS handler for preflight requests
+app.options('*', cors());
 app.use(express.json());
 
 // Only use static serving if you deploy frontend with backend
